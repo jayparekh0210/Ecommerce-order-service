@@ -1,8 +1,9 @@
 package com.ecom.ecomorder.adapters;
 
 
-import com.ecom.ecomorder.dto.requests.CartRequest;
-import com.ecom.ecomorder.dto.responses.CartResponse;
+import com.ecom.ecomorder.dto.external.responses.ProductResponseDTO;
+import com.ecom.ecomorder.dto.internal.requests.CartRequest;
+import com.ecom.ecomorder.dto.internal.responses.CartResponse;
 import com.ecom.ecomorder.models.CartItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,13 +14,12 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class CartItemConverter {
 
-    public CartItem cartItemRequestToCartItemModel(CartRequest cartRequest, String userId,String productId) {
+    public CartItem cartItemRequestToCartItemModel(CartRequest cartRequest, String userId, ProductResponseDTO product) {
         return CartItem.builder()
-                .productId(productId)
+                .productId(product.getId())
                 .userId(userId)
                 .quantity(cartRequest.getQuantity())
-                //Setting Hard coded value as of now will fix once we do inter-service communication
-                .price(BigDecimal.valueOf(100.00).multiply(BigDecimal.valueOf(cartRequest.getQuantity())))
+                .price(product.getPrice().multiply(BigDecimal.valueOf(cartRequest.getQuantity())))
                 .build();
     }
 

@@ -1,8 +1,12 @@
 package com.ecom.ecomorder.services;
 
 import com.ecom.ecomorder.adapters.CartItemConverter;
-import com.ecom.ecomorder.dto.requests.CartRequest;
-import com.ecom.ecomorder.dto.responses.CartResponse;
+import com.ecom.ecomorder.api.clients.HttpInterfaceProductService;
+import com.ecom.ecomorder.api.clients.HttpInterfaceUserService;
+import com.ecom.ecomorder.dto.external.responses.ProductResponseDTO;
+import com.ecom.ecomorder.dto.external.responses.UserResponse;
+import com.ecom.ecomorder.dto.internal.requests.CartRequest;
+import com.ecom.ecomorder.dto.internal.responses.CartResponse;
 import com.ecom.ecomorder.models.CartItem;
 import com.ecom.ecomorder.repositories.CartItemRepository;
 import com.ecom.ecomorder.validations.CartValidation;
@@ -20,30 +24,36 @@ public class CartItemService {
     private final CartItemRepository cartItemRepository;
     private final CartValidation cartValidation;
     private final CartItemConverter cartItemConverter;
+    private final HttpInterfaceProductService httpInterfaceProductService;
+    private final HttpInterfaceUserService httpInterfaceUserService;
 
     public boolean addToCart(String userId, CartRequest cartRequest) {
-        String productId = String.valueOf(cartRequest.getProductId());
+        ProductResponseDTO productResponse = httpInterfaceProductService.getProductById(cartRequest.getProductId());
+        UserResponse userResponse = httpInterfaceUserService.getUserById(userId);
 
-        if (cartValidation.isAddToCartValid(userId, productId)) {
-            CartItem exsistingCartItem = cartItemRepository.findByUserIdAndProductId(userId, productId);
+        if (cartValidation.isAddToCartValid(userResponse, productResponse, cartRequest)) {
+            CartItem exsistingCartItem = cartItemRepository.findByUserIdAndProductId(userId, productResponse.getId());
             if (exsistingCartItem != null) {
-                if (cartValidation.AddToExistingCartValid(productId)) {
-                    addMoreQuantityToCart(exsistingCartItem, cartRequest);
+                if (cartValidation.AddToExistingCartValid(productResponse,exsistingCartItem,cartRequest)) {
+                    addMoreQuantityToCart(exsistingCartItem, cartRequest,productResponse);
                 } else {
                     return false;
                 }
             } else {
-                addNewCartItem(userId, productId, cartRequest);
+                addNewCartItem(userId, productResponse, cartRequest);
             }
             return true;
         }
         return false;
     }
 
-    public boolean deleteCartItem(String userid, Long productId) {
+    public boolean deleteCartItem(String userId, String productId) {
 
-        if (cartValidation.isRemoveFromCartValid(userid, String.valueOf(productId))) {
-            CartItem cartItem = cartItemRepository.findByUserIdAndProductId(userid, String.valueOf(productId));
+        ProductResponseDTO productResponse = httpInterfaceProductService.getProductById(productId);
+        UserResponse userResponse = httpInterfaceUserService.getUserById(userId);
+
+        if (cartValidation.isRemoveFromCartValid(userResponse, productResponse)) {
+            CartItem cartItem = cartItemRepository.findByUserIdAndProductId(userId, productId);
             if (cartItem != null) {
                 cartItemRepository.delete(cartItem);
                 return true;
@@ -52,12 +62,15 @@ public class CartItemService {
         return false;
     }
 
-    public boolean removeFromCart(String userid, Long productId) {
-        if (cartValidation.isRemoveFromCartValid(userid, String.valueOf(productId))) {
-            CartItem cartItem = cartItemRepository.findByUserIdAndProductId(userid, String.valueOf(productId));
+    public boolean removeFromCart(String userId, String productId) {
+        ProductResponseDTO productResponse = httpInterfaceProductService.getProductById(productId);
+        UserResponse userResponse = httpInterfaceUserService.getUserById(userId);
+
+        if (cartValidation.isRemoveFromCartValid(userResponse,productResponse)) {
+            CartItem cartItem = cartItemRepository.findByUserIdAndProductId(userId, String.valueOf(productId));
             if (cartItem != null) {
                 if (cartItem.getQuantity() > 1) {
-                    decreaseQuantityFromCart(cartItem);
+                    decreaseQuantityFromCart(cartItem, productResponse);
                 } else {
                     cartItemRepository.delete(cartItem);
                 }
@@ -75,24 +88,20 @@ public class CartItemService {
 
     }
 
-    private void decreaseQuantityFromCart(CartItem cartItem) {
-        BigDecimal singleItemPrice = cartItem.getPrice()
-                .divide(BigDecimal.valueOf(cartItem.getQuantity()), 2, RoundingMode.HALF_UP);
+    private void decreaseQuantityFromCart(CartItem cartItem, ProductResponseDTO product) {
         cartItem.setQuantity(cartItem.getQuantity() - 1);
-        cartItem.setPrice(singleItemPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+        cartItem.setPrice(product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
         cartItemRepository.save(cartItem);
     }
 
-    private void addMoreQuantityToCart(CartItem exsistingCartItem, CartRequest cartRequest) {
-        BigDecimal singleItemPrice = exsistingCartItem.getPrice()
-                .divide(BigDecimal.valueOf(exsistingCartItem.getQuantity()), 2, RoundingMode.HALF_UP);
+    private void addMoreQuantityToCart(CartItem exsistingCartItem, CartRequest cartRequest, ProductResponseDTO product) {
         exsistingCartItem.setQuantity(exsistingCartItem.getQuantity() + cartRequest.getQuantity());
-        exsistingCartItem.setPrice(singleItemPrice.multiply(BigDecimal.valueOf(exsistingCartItem.getQuantity())));
+        exsistingCartItem.setPrice(product.getPrice().multiply(BigDecimal.valueOf(exsistingCartItem.getQuantity())));
         cartItemRepository.save(exsistingCartItem);
     }
 
-    private void addNewCartItem(String userid, String productId, CartRequest cartRequest) {
-        CartItem cartItem = cartItemConverter.cartItemRequestToCartItemModel(cartRequest, userid, productId);
+    private void addNewCartItem(String userid, ProductResponseDTO product, CartRequest cartRequest) {
+        CartItem cartItem = cartItemConverter.cartItemRequestToCartItemModel(cartRequest, userid, product);
         cartItemRepository.save(cartItem);
     }
 }

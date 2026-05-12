@@ -1,7 +1,7 @@
 package com.ecom.ecomorder.controllers;
 
 
-import com.ecom.ecomorder.dto.responses.OrderResponse;
+import com.ecom.ecomorder.dto.internal.responses.OrderResponse;
 import com.ecom.ecomorder.services.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

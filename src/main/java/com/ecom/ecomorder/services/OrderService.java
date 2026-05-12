@@ -1,7 +1,7 @@
 package com.ecom.ecomorder.services;
 
 import com.ecom.ecomorder.adapters.OrderItemConverter;
-import com.ecom.ecomorder.dto.responses.OrderResponse;
+import com.ecom.ecomorder.dto.internal.responses.OrderResponse;
 import com.ecom.ecomorder.models.OrderStatus;
 import com.ecom.ecomorder.models.CartItem;
 import com.ecom.ecomorder.models.Order;

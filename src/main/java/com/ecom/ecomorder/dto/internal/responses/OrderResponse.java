@@ -1,4 +1,4 @@
-package com.ecom.ecomorder.dto.responses;
+package com.ecom.ecomorder.dto.internal.responses;
 
 
 import com.ecom.ecomorder.models.OrderStatus;

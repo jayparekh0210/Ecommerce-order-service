@@ -1,6 +1,6 @@
 package com.ecom.ecomorder.adapters;
-import com.ecom.ecomorder.dto.responses.OrderItemDTO;
-import com.ecom.ecomorder.dto.responses.OrderResponse;
+import com.ecom.ecomorder.dto.internal.responses.OrderItemDTO;
+import com.ecom.ecomorder.dto.internal.responses.OrderResponse;
 import com.ecom.ecomorder.models.CartItem;
 import com.ecom.ecomorder.models.Order;
 import com.ecom.ecomorder.models.OrderItem;

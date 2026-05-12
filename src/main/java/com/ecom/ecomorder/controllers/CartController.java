@@ -1,8 +1,8 @@
 package com.ecom.ecomorder.controllers;
 
 
-import com.ecom.ecomorder.dto.requests.CartRequest;
-import com.ecom.ecomorder.dto.responses.CartResponse;
+import com.ecom.ecomorder.dto.internal.requests.CartRequest;
+import com.ecom.ecomorder.dto.internal.responses.CartResponse;
 import com.ecom.ecomorder.services.CartItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,7 +35,7 @@ public class CartController {
             @RequestHeader("X-User-Id") String userId,
             @PathVariable String productId
     ) {
-        if(cartItemService.removeFromCart(userId, Long.parseLong(productId))){
+        if(cartItemService.removeFromCart(userId, productId)){
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Product not found in cart or user not found");
@@ -46,7 +46,7 @@ public class CartController {
             @RequestHeader("X-User-Id") String userId,
             @PathVariable String productId
     ) {
-        if(cartItemService.deleteCartItem(userId, Long.parseLong(productId))){
+        if(cartItemService.deleteCartItem(userId, productId)){
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Product not found in cart or user not found");

@@ -1,9 +1,9 @@
-package com.ecom.ecomorder.dto.requests;
+package com.ecom.ecomorder.dto.internal.requests;
 
 import lombok.Data;
 
 @Data
 public class CartRequest {
-    private Long productId;
+    private String productId;
     private Integer quantity;
 }
