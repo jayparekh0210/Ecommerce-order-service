@@ -20,7 +20,7 @@ public class OrderController {
     public ResponseEntity<?> createOrder(
             @RequestHeader("X-User-Id") String userId
     ) {
-        OrderResponse orderResponse = orderService.createOrder(Long.parseLong(userId));
+        OrderResponse orderResponse = orderService.createOrder(userId);
         if(orderResponse == null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found or cart is empty");
         }

@@ -23,11 +23,11 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final OrderItemConverter orderItemConverter;
 
-    public OrderResponse createOrder(Long userId) {
+    public OrderResponse createOrder(String userId) {
         if (userId != null) {
-            List<CartItem> cartItems = cartItemRepository.findCartItemsByUserId(String.valueOf(userId));
+            List<CartItem> cartItems = cartItemRepository.findCartItemsByUserId(userId);
             if (!cartItems.isEmpty()) {
-                Order savedOrder = saveOrderToDb(cartItems, String.valueOf(userId));
+                Order savedOrder = saveOrderToDb(cartItems,userId);
                 cartItemRepository.deleteAll(cartItems);
                 return orderItemConverter.orderModelToOrderResponse(savedOrder);
             } else {
