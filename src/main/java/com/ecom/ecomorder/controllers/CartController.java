@@ -5,6 +5,7 @@ import com.ecom.ecomorder.dto.internal.requests.CartRequest;
 import com.ecom.ecomorder.dto.internal.responses.CartResponse;
 import com.ecom.ecomorder.services.CartItemService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +15,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
+@Slf4j
 public class CartController {
 
     private final CartItemService cartItemService;
+
+    @GetMapping("/simulateFailure")
+    public ResponseEntity<String> simulateFailure(@RequestParam(defaultValue = "false") boolean shouldFail) {
+        if (shouldFail) {
+            log.info("Simulated Failure");
+            throw new RuntimeException("Simulated failure");
+        }
+        return ResponseEntity.ok("Success");
+
+    }
 
     @PostMapping("/addToCart")
     public ResponseEntity<String> addToCart(

@@ -7,19 +7,25 @@ import com.ecom.ecomorder.dto.external.responses.ProductResponseDTO;
 import com.ecom.ecomorder.dto.external.responses.UserResponse;
 import com.ecom.ecomorder.dto.internal.requests.CartRequest;
 import com.ecom.ecomorder.dto.internal.responses.CartResponse;
+import com.ecom.ecomorder.exceptions.RequestNotCompletedException;
 import com.ecom.ecomorder.models.CartItem;
 import com.ecom.ecomorder.repositories.CartItemRepository;
 import com.ecom.ecomorder.validations.CartValidation;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import static com.ecom.ecomorder.constants.ErrorTextConstant.*;
+
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.Data;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 @Service
 @Data
+@Slf4j
 public class CartItemService {
     private final CartItemRepository cartItemRepository;
     private final CartValidation cartValidation;
@@ -27,6 +33,8 @@ public class CartItemService {
     private final HttpInterfaceProductService httpInterfaceProductService;
     private final HttpInterfaceUserService httpInterfaceUserService;
 
+
+    @Retry(name = "productService", fallbackMethod = "addToCartFallback")
     public boolean addToCart(String userId, CartRequest cartRequest) {
         ProductResponseDTO productResponse = httpInterfaceProductService.getProductById(cartRequest.getProductId());
         UserResponse userResponse = httpInterfaceUserService.getUserById(userId);
@@ -45,6 +53,11 @@ public class CartItemService {
             return true;
         }
         return false;
+    }
+
+
+    public boolean addToCartFallback(String userId, CartRequest cartRequest, Exception ex) {
+        throw new RequestNotCompletedException(REQUEST_NOT_COMPLETED);
     }
 
     public boolean deleteCartItem(String userId, String productId) {
