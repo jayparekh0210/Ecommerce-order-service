@@ -1,4 +1,5 @@
 package com.ecom.ecomorder.adapters;
+import com.ecom.ecomorder.dto.internal.responses.OrderCreatedEvent;
 import com.ecom.ecomorder.dto.internal.responses.OrderItemDTO;
 import com.ecom.ecomorder.dto.internal.responses.OrderResponse;
 import com.ecom.ecomorder.models.CartItem;
@@ -40,6 +41,19 @@ public class OrderItemConverter {
                         .map(this::orderItemToOrderItemDTO)
                         .toList())
                 .createdAt(order.getCreatedAt())
+                .build();
+    }
+
+    public OrderCreatedEvent orederToOrderCreatedEvent(Order order){
+        return OrderCreatedEvent.builder()
+                .id(order.getId())
+                .status(order.getStatus())
+                .totalAmount(order.getTotalAmount())
+                .createdAt(order.getCreatedAt())
+                .userId(order.getUserId())
+                .orderItems(order.getOrderItems().stream()
+                        .map(this::orderItemToOrderItemDTO)
+                        .toList())
                 .build();
     }
 }

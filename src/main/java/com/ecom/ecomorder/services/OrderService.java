@@ -1,6 +1,7 @@
 package com.ecom.ecomorder.services;
 
 import com.ecom.ecomorder.adapters.OrderItemConverter;
+import com.ecom.ecomorder.dto.internal.responses.OrderCreatedEvent;
 import com.ecom.ecomorder.dto.internal.responses.OrderResponse;
 import com.ecom.ecomorder.models.OrderStatus;
 import com.ecom.ecomorder.models.CartItem;
@@ -10,7 +11,10 @@ import com.ecom.ecomorder.models.OrderItem;
 import com.ecom.ecomorder.repositories.CartItemRepository;
 import com.ecom.ecomorder.repositories.OrderRepository;
 import lombok.Data;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
+import static com.ecom.ecomorder.constants.RabbitMQConstant.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,6 +26,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
     private final OrderItemConverter orderItemConverter;
+    private final StreamBridge streamBridge;
 
     public OrderResponse createOrder(String userId) {
         if (userId != null) {
@@ -29,6 +34,8 @@ public class OrderService {
             if (!cartItems.isEmpty()) {
                 Order savedOrder = saveOrderToDb(cartItems,userId);
                 cartItemRepository.deleteAll(cartItems);
+                OrderCreatedEvent orderCreatedEvent = orderItemConverter.orederToOrderCreatedEvent(savedOrder);
+                streamBridge.send(ORDER_STREAM_BUILDING_QUEUE_NAME, orderCreatedEvent);
                 return orderItemConverter.orderModelToOrderResponse(savedOrder);
             } else {
                 return null;
